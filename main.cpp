@@ -32,8 +32,9 @@ std::string disassembleInstruction(uint32_t instruction) {
         else if (funct3 == 0x0 && funct7 == 0x20) {
             mnemonic = "SUB";
         }
+        //additional instructs
         break;
-    case 0x03: //I-type
+    case 0x03: //I-type load instructions
         if (funct3 == 0x0) {
             mnemonic = "LB";
         }
@@ -43,19 +44,39 @@ std::string disassembleInstruction(uint32_t instruction) {
         else if (funct3 == 0x2) {
             mnemonic = "LW";
         }
+        //additional instructs
         break;
-        {
-    case 0x6F: //J-Type
+    case 0x23: //S-Type store instructions
+        if (funct3 == 0x0) {
+            mnemonic = "SB";
+        }
+        else if (funct3 == 0x1) {
+            mnemonic = "SH";
+        }
+        else if (funct3 == 0x2) {
+            mnemonic = "SW";
+        }
+        break;
+    case 0x63: //B-Type branch instructions
+        if (funct3 == 0x0) {
+            mnemonic = "BEQ";
+        }
+        else if (funct3 == 0x1) {
+            mnemonic = "BNE";
+        }
+        //additional B=Type
+    case 0x6F: { //J-Type
         int32_t imm = (instruction & 0xFF000000) >> 20 | (instruction & 0x7FE00000) >> 9 |
             (instruction & 0x100000) >> 11 | (instruction & 0xFF000) >> 12;
         mnemonic = "JAL";
         return mnemonic + " rd: " + std::to_string(rd) + ", imm: " + std::to_string(imm);
+    }
         break;
-        }
     default:
         mnemonic = "UNKNOWN";
         break;
     }
+    
 
     return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", rs2: " + std::to_string(rs2);
 }

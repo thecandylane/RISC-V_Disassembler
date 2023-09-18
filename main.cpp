@@ -22,6 +22,8 @@ std::string disassembleInstruction(uint32_t instruction) {
     uint8_t rs2 = (instruction >> 20) & 0x1F; //shifts right 20, extracts next 5 bits[24:20]
     uint8_t rd = (instruction >> 7) & 0x1F; //shifts right 7, extracts next 5 bits[11:7]
 
+    int32_t imm;
+
     std::string mnemonic = "UNKNOWN";
 
     switch (opcode) {
@@ -29,12 +31,43 @@ std::string disassembleInstruction(uint32_t instruction) {
         if (funct3 == 0x0 && funct7 == 0x00) {
             mnemonic = "ADD";
         }
-        else if (funct3 == 0x0 && funct7 == 0x20) {
+        else if (funct3 == 0x0 && funct7 == 0x20) { 
             mnemonic = "SUB";
         }
-        //additional instructs
+        else if (funct3 == 0x0 && funct7 == 0x01) {
+            mnemonic = "MUL";
+        }
+        else if (funct3 == 0x1 && funct7 == 0x00) {
+            mnemonic = "SLL";
+        }
+        else if (funct3 == 0x2 && funct7 == 0x00) {
+            mnemonic = "SLT";
+        }
+        else if (funct3 == 0x3 && funct7 == 0x00) {
+            mnemonic = "SLTU";
+        }
+        else if (funct3 == 0x4 && funct7 == 0x00) {
+            mnemonic = "XOR";
+        }
+        else if (funct3 == 0x4 && funct7 == 0x01) {
+            mnemonic = "DIV";
+        }
+        else if (funct3 == 0x5 && funct7 == 0x00) {
+            mnemonic = "SRL";
+        }
+        else if (funct3 == 0x5 && funct7 == 0x20) {
+            mnemonic = "SRA";
+        }
+        else if (funct3 == 0x6 && funct7 == 0x00) {
+            mnemonic = "OR";
+        }
+        else if (funct3 == 0x7 && funct7 == 0x00) {
+            mnemonic = "AND";
+        }
         break;
-    case 0x03: //I-type load instructions
+    case 0x03: { //I-type load instructions 
+        imm = (instruction >> 20) & 0XFFF;
+
         if (funct3 == 0x0) {
             mnemonic = "LB";
         }
@@ -44,9 +77,30 @@ std::string disassembleInstruction(uint32_t instruction) {
         else if (funct3 == 0x2) {
             mnemonic = "LW";
         }
+    case 0x13: // I-type arithmetic
+        imm = (instruction & 0xFFF00000) >> 20;
+        if (funct3 == 0x0) {
+            mnemonic = "ADDI";
+        }
+        else if (funct3 == 0x2) {
+            mnemonic = "SLTI";
+        }
+        else if (funct3 == 0x4) {
+            mnemonic = "XORI";
+        }
+        else if (funct3 == 0x6) {
+            mnemonic = "ORI";
+        }
+        else if (funct3 == 0x7) {
+            mnemonic = "ANDI";
+        }
         //additional instructs
+        return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", imm: " + std::to_string(imm);
+        }
         break;
     case 0x23: //S-Type store instructions
+        imm = ((instruction & 0xFE000000) >> 20) | ((instruction >> 7) & 0x1F);
+
         if (funct3 == 0x0) {
             mnemonic = "SB";
         }
@@ -56,8 +110,11 @@ std::string disassembleInstruction(uint32_t instruction) {
         else if (funct3 == 0x2) {
             mnemonic = "SW";
         }
+        return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", imm: " + std::to_string(imm);
         break;
     case 0x63: //B-Type branch instructions
+        imm = ((instruction & 0x80000000) >> 19) | ((instruction & 0x7E000000) >> 20) |
+            ((instruction >> 7) & 0x1E) | ((instruction >> 7) & 0x01);
         if (funct3 == 0x0) {
             mnemonic = "BEQ";
         }
@@ -66,8 +123,8 @@ std::string disassembleInstruction(uint32_t instruction) {
         }
         //additional B=Type
     case 0x6F: { //J-Type
-        int32_t imm = (instruction & 0xFF000000) >> 20 | (instruction & 0x7FE00000) >> 9 |
-            (instruction & 0x100000) >> 11 | (instruction & 0xFF000) >> 12;
+        imm = ((instruction & 0xFF000000) >> 20) | ((instruction & 0x7FE00000) >> 9) |
+            ((instruction & 0x100000) >> 11) | ((instruction & 0xFF000) >> 12);
         mnemonic = "JAL";
         return mnemonic + " rd: " + std::to_string(rd) + ", imm: " + std::to_string(imm);
     }

@@ -77,13 +77,23 @@ std::string disassembleInstruction(uint32_t instruction) {
         else if (funct3 == 0x2) {
             mnemonic = "LW";
         }
+        else if (funct3 == 0x4) {
+            mnemonic = "LBU";
+        }
+        else if (funct3 == 0x5) {
+            mnemonic = "LHU";
+        }
     case 0x13: // I-type arithmetic
         imm = (instruction & 0xFFF00000) >> 20;
+        uint8_t shamt = (instruction >> 20) & 0x1F;
         if (funct3 == 0x0) {
             mnemonic = "ADDI";
         }
         else if (funct3 == 0x2) {
             mnemonic = "SLTI";
+        }
+        else if (funct3 == 0x3) {
+            mnemonic = "SLTIU";
         }
         else if (funct3 == 0x4) {
             mnemonic = "XORI";
@@ -94,7 +104,16 @@ std::string disassembleInstruction(uint32_t instruction) {
         else if (funct3 == 0x7) {
             mnemonic = "ANDI";
         }
-        //additional instructs
+        else if (funct3 == 0x1 && funct7 == 0x00) {
+            mnemonic = "SLLI";
+        }
+        else if (funct3 == 0x5) 
+            if (funct7 == 0x00) {
+                mnemonic = "SRLI";
+            }
+            else if (funct7 == 0x20){
+                mnemonic = "SRAI";
+            }
         return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", imm: " + std::to_string(imm);
         }
         break;
@@ -120,6 +139,18 @@ std::string disassembleInstruction(uint32_t instruction) {
         }
         else if (funct3 == 0x1) {
             mnemonic = "BNE";
+        }
+        else if (funct3 == 0x4) {
+            mnemonic = "BLT";
+        }
+        else if (funct3 == 0x5) {
+            mnemonic = "BGE";
+        }
+        else if (funct3 == 0x6) {
+            mnemonic = "BLTU";
+        }
+        else if (funct3 == 0x7) {
+            mnemonic = "BGEU";
         }
         //additional B=Type
     case 0x6F: { //J-Type

@@ -3,15 +3,15 @@
 #include <vector>
 #include <string>
 
-// Function to read the binary file into a buffer
-std::vector<uint8_t> readBinaryFile(const std::string& filePath) {
+// Read binary file into buffer
+std::vector<uint8_t> readFile(const std::string& filePath) {
     std::ifstream file(filePath, std::ios::binary);
     std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(file), {});
     std::cout << "Successfully read binary file. Size: " << buffer.size() << " bytes." << std::endl;
     return buffer;
 }
 
-// Function to disassemble a single RISC-V instruction
+// Disassemble the instruction
 std::string disassembleInstruction(uint32_t instruction) {
     std::cout << "Disassembling instruction: " << std::hex << instruction << std::dec << std::endl;
 
@@ -22,8 +22,10 @@ std::string disassembleInstruction(uint32_t instruction) {
     uint8_t rs2 = (instruction >> 20) & 0x1F; //shifts right 20, extracts next 5 bits[24:20]
     uint8_t rd = (instruction >> 7) & 0x1F; //shifts right 7, extracts next 5 bits[11:7]
 
+    //immediate val
     int32_t imm;
 
+    //work in progress
     std::string mnemonic = "UNKNOWN";
 
     switch (opcode) {
@@ -106,6 +108,7 @@ std::string disassembleInstruction(uint32_t instruction) {
         }
         else if (funct3 == 0x1 && funct7 == 0x00) {
             mnemonic = "SLLI";
+            return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", shamt: " + std::to_string(shamt);
         }
         else if (funct3 == 0x5) 
             if (funct7 == 0x00) {
@@ -114,8 +117,8 @@ std::string disassembleInstruction(uint32_t instruction) {
             else if (funct7 == 0x20){
                 mnemonic = "SRAI";
             }
-        return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", imm: " + std::to_string(imm);
-        }
+        return mnemonic + " rd: " + std::to_string(rd) + ", rs1: " + std::to_string(rs1) + ", shamt: " + std::to_string(shamt);
+    }
         break;
     case 0x23: //S-Type store instructions
         imm = ((instruction & 0xFE000000) >> 20) | ((instruction >> 7) & 0x1F);
@@ -170,16 +173,22 @@ std::string disassembleInstruction(uint32_t instruction) {
 }
 
 int main() {
-    std::vector<uint8_t> buffer = readBinaryFile("test_instructions.bin");
+    //buffer
+    std::vector<uint8_t> buffer = readFile("test_instructions.bin");
 
+    //loops through instructions
     for (size_t i = 0; i < buffer.size(); i += 4) {
+        
         std::cout << "Processing bytes at position " << i << " to " << i + 3 << std::endl;
-
+        //32b unsigned for for 4b > buff
         uint32_t instruction = 0;
         for (int j = 0; j < 4; ++j) {
+            //8b unsigned, read from buffer
             uint8_t byte = buffer[i + j];
+            //display in hexd
             std::cout << "Byte " << j << ": " << std::hex << static_cast<int>(byte) << std::dec << std::endl;
 
+            //shift b to position in instruction
             instruction |= byte << (j * 8);
         }
 
